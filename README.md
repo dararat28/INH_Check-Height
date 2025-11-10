@@ -1,2 +1,124 @@
-# INH_Check-Height
-ใช้สำหรับตรวจสอบความสูง Code ก่อนตั้งชื่อ
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<title>Height Code Database</title>
+<style>
+  body { font-family:sans-serif; background:#f9fafb; padding:20px; }
+  input, button { margin:5px; padding:6px; font-size:14px; }
+  table { border-collapse:collapse; margin-top:15px; width:100%; max-width:600px; }
+  th, td { border:1px solid #ccc; padding:6px; text-align:center; }
+  th { background:#eee; }
+</style>
+</head>
+<body>
+
+<h2>📏 ระบบเก็บข้อมูล Code และความสูง (mm)</h2>
+
+<label>Code: </label>
+<input type="text" id="code" placeholder="เช่น A" maxlength="5">
+<br>
+<label>Height (mm): </label>
+<input type="number" id="height" placeholder="เช่น 400">
+<br>
+<button onclick="saveData()">บันทึกข้อมูล</button>
+
+<h3>🔍 ค้นหาจากความสูง</h3>
+<input type="number" id="searchHeight" placeholder="ใส่ความสูง mm">
+<button onclick="searchHeight()">ค้นหา</button>
+<p id="searchResult"></p>
+
+<h3>📚 ข้อมูลทั้งหมด</h3>
+<table id="dataTable">
+  <thead>
+    <tr><th>Code</th><th>Height (mm)</th></tr>
+  </thead>
+  <tbody></tbody>
+</table>
+
+<script>
+// ✅ ข้อมูลตั้งต้น
+const records = [
+  {code:"A",height:406},{code:"B",height:371},{code:"C",height:448},
+  {code:"D",height:295},{code:"E",height:533},{code:"F",height:356},
+  {code:"G",height:387},{code:"H",height:51},
+  {code:"I",height:251},{code:"I",height:287},
+  {code:"J",height:410},{code:"K",height:149},{code:"L",height:633},
+  {code:"M",height:559},{code:"N",height:393},
+  {code:"O",height:47},{code:"O",height:55},
+  {code:"P",height:651},{code:"Q",height:191},{code:"R",height:540},
+  {code:"S",height:356},{code:"T",height:600},{code:"U",height:106},
+  {code:"V",height:332},{code:"W",height:179},{code:"X",height:712},
+  {code:"Y",height:194},{code:"Z",height:122},
+  {code:"1",height:246},{code:"1",height:247},
+  {code:"2",height:227},{code:"3",height:416},{code:"4",height:195},
+  {code:"5",height:260},{code:"6",height:259},{code:"7",height:56},
+  {code:"8",height:321},{code:"9",height:135},{code:"10",height:635},
+];
+
+// ✅ Code ที่อนุญาตให้มี 2 ค่า
+const multiAllowed = ["I", "O", "1"];
+
+// แสดงตาราง
+function renderTable() {
+  const tbody = document.querySelector("#dataTable tbody");
+  tbody.innerHTML = records.map(r=>`<tr><td>${r.code}</td><td>${r.height}</td></tr>`).join("");
+}
+renderTable();
+
+// ✅ ฟังก์ชันบันทึกข้อมูล
+function saveData() {
+  const code = document.getElementById('code').value.trim().toUpperCase();
+  const height = Number(document.getElementById('height').value);
+  if(!code || !height) return alert("กรุณากรอก Code และความสูง");
+
+  const sameCode = records.filter(r => r.code === code);
+  const duplicate = sameCode.find(r => r.height === height);
+
+  // 1️⃣ ตรวจสอบว่าความสูงนี้เคยใช้กับ Code ไหนแล้ว
+  const heightUsed = records.filter(r => r.height === height).map(r => r.code);
+  if(heightUsed.length > 0 && !heightUsed.includes(code)) {
+    alert(`ห้ามบันทึก! ความสูง ${height} mm เคยใช้กับ Code: ${heightUsed.join(", ")}`);
+    return;
+  }
+
+  // 2️⃣ ตรวจสอบซ้ำเดิมของ Code
+  if(duplicate) {
+    alert("ข้อมูลนี้มีอยู่แล้ว");
+    return;
+  }
+
+  // 3️⃣ กรณี Code อนุญาตแค่ 2 ค่า
+  if(multiAllowed.includes(code)) {
+    if(sameCode.length >= 2) {
+      alert(`${code} อนุญาตได้สูงสุด 2 ค่าเท่านั้น`);
+      return;
+    }
+  } else {
+    // Code ปกติ (บันทึกได้แค่ค่าเดียว)
+    if(sameCode.length > 0) {
+      alert(`${code} มีอยู่แล้ว ห้ามซ้ำต่างความสูง (เคยมี ${sameCode.map(r=>r.height).join(", ")} mm)`);
+      return;
+    }
+  }
+
+  // 4️⃣ บันทึกข้อมูล
+  records.push({code, height});
+  renderTable();
+  alert("บันทึกเรียบร้อย");
+  document.getElementById('code').value = '';
+  document.getElementById('height').value = '';
+}
+
+// ✅ ค้นหาความสูง
+function searchHeight() {
+  const h = Number(document.getElementById('searchHeight').value);
+  if(!h) return alert("กรุณากรอกความสูงที่ต้องการค้นหา");
+  const found = records.filter(r => r.height === h).map(r => r.code);
+  document.getElementById('searchResult').innerText = found.length 
+    ? `ความสูง ${h} mm เคยใช้กับ Code: ${found.join(", ")}`
+    : `ไม่พบ Code ที่มีความสูง ${h} mm`;
+}
+</script>
+</body>
+</html>
